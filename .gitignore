@@ -1,0 +1,5 @@
+#files
+*.exe
+*.obj
+#dictionaries
+.vs/
