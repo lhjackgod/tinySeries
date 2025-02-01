@@ -67,11 +67,6 @@ template<size_t DIM,typename T,typename U> vec<DIM,T> operator*(const vec<DIM,T>
     return ret;
 }
 
-template<size_t DIM, typename T, typename U> vec<DIM, T> operator*(const U& lhs, const vec<DIM, T> rhs)
-{
-    return rhs * lhs;
-}
-
 template<size_t DIM,typename T> vec<DIM,T> operator-(const vec<DIM,T> &lhs) {
     return lhs*T(-1);
 }
