@@ -26,16 +26,16 @@ struct TGAColor {
     std::uint8_t& operator[](const int i) { return bgra[i]; }
     TGAColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
     {
-        bgra[0] = red;
+        bgra[0] = blue;
         bgra[1] = green;
-        bgra[2] = blue;
+        bgra[2] = red;
         bgra[3] = alpha;
     }
     TGAColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, const int bpp)
     {
-        bgra[0] = red;
+        bgra[0] = blue;
         bgra[1] = green;
-        bgra[2] = blue;
+        bgra[2] = red;
         bgra[3] = alpha;
         bytespp = bpp;
      }
