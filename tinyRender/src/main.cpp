@@ -1,5 +1,7 @@
 #include "tgaimage.h"
 #include "model.h"
+#include <vector>
+#include "stb_image.h"
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 
@@ -129,6 +131,12 @@ float* zBuffer)
         }
     }
 }
+
+void loadImage(std::vector<vec3f>& data, const char* imagePath)
+{
+    
+}
+
 int main(int argc, char* argv[])
 {
     const int width = 800;
