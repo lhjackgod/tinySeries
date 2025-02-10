@@ -42,6 +42,8 @@ struct TGAColor {
     TGAColor() = default;
 };
 
+TGAColor operator*(const TGAColor& color, float f);
+
 struct TGAImage {
     enum Format { GRAYSCALE=1, RGB=3, RGBA=4 };
 

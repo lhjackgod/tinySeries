@@ -49,6 +49,17 @@ bool TGAImage::read_tga_file(const std::string filename) {
     return true;
 }
 
+TGAColor operator*(const TGAColor& color, float f)
+{
+    auto clamp = [](float value)
+        {
+            return static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, value)));
+        };
+        TGAColor ret(clamp(color.bgra[0] * f), clamp(color.bgra[1] * f), 
+        clamp(color.bgra[2] * f), clamp(color.bgra[3] * f));
+        return ret;
+}
+
 bool TGAImage::load_rle_data(std::ifstream &in) {
     size_t pixelcount = w*h;
     size_t currentpixel = 0;
