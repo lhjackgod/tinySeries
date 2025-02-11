@@ -5,6 +5,7 @@
 TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {}
 
 bool TGAImage::read_tga_file(const std::string filename) {
+    std::cout << "jack" << " " << filename << std::endl;
     std::ifstream in;
     in.open(filename, std::ios::binary);
     if (!in.is_open()) {
@@ -58,6 +59,26 @@ TGAColor operator*(const TGAColor& color, float f)
         TGAColor ret(clamp(color.bgra[0] * f), clamp(color.bgra[1] * f), 
         clamp(color.bgra[2] * f), clamp(color.bgra[3] * f));
         return ret;
+}
+
+TGAColor operator*(float f, const TGAColor& color)
+{
+    return color * f;
+}
+
+TGAColor operator+(const TGAColor& lhs, const TGAColor& rhs)
+{
+    auto clamp = [](float value)
+    {
+        return static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, value)));
+    };
+    return TGAColor(clamp(lhs.bgra[2] + rhs.bgra[2]), clamp(lhs.bgra[1] + rhs.bgra[1]), clamp(lhs.bgra[0] + rhs.bgra[0]));
+}
+
+std::ostream& operator<<(std::ostream& os, const TGAColor& color)
+{
+    os << color.bgra[2] << " " << color.bgra[1] << " " << color.bgra[0] << std::endl;
+    return os;
 }
 
 bool TGAImage::load_rle_data(std::ifstream &in) {

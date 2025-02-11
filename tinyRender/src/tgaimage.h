@@ -40,10 +40,22 @@ struct TGAColor {
         bytespp = bpp;
      }
     TGAColor() = default;
+    void gama()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            float p_bgra = bgra[i];
+            p_bgra /= 255.0f;
+            p_bgra = std::pow(p_bgra, 1.0f / 2.2f);
+            bgra[i] = static_cast<uint8_t>(p_bgra * 255.0f);
+        }
+    }
 };
 
 TGAColor operator*(const TGAColor& color, float f);
-
+TGAColor operator*(float f, const TGAColor& color);
+TGAColor operator+(const TGAColor& lhs, const TGAColor& rhs);
+std::ostream& operator<<(std::ostream& os, const TGAColor& color);
 struct TGAImage {
     enum Format { GRAYSCALE=1, RGB=3, RGBA=4 };
 

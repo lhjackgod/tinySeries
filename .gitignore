@@ -1,5 +1,6 @@
 #files
 *.exe
 *.obj
+!african_head.obj
 #dictionaries
 .vs/

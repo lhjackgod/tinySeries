@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
-
+#include <cstdint>
 template<int n, typename T> struct vec {
     T data[n] = {0};
     T& operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
