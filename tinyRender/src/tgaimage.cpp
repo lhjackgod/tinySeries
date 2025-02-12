@@ -56,8 +56,8 @@ TGAColor operator*(const TGAColor& color, float f)
         {
             return static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, value)));
         };
-        TGAColor ret(clamp(color.bgra[0] * f), clamp(color.bgra[1] * f), 
-        clamp(color.bgra[2] * f), clamp(color.bgra[3] * f));
+        TGAColor ret(clamp(color.bgra[2] * f), clamp(color.bgra[1] * f), 
+        clamp(color.bgra[0] * f));
         return ret;
 }
 

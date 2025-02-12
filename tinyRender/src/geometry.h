@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstdint>
+
 template<int n, typename T> struct vec {
     T data[n] = {0};
     T& operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
@@ -11,44 +12,18 @@ template<int n, typename T> struct vec {
     T norm()  const { return std::sqrt(norm2()); }
 };
 
-template<int n> struct Veci
-{
-    int data[n];
-    int& operator[](const int i) {assert(i >= 0 && i < n); return data[i];}
-    int  operator[](const int i) const {assert(i >=0 && i < n); return data[i];} 
-    int64_t norm2() const {return *this * *this;}
-    double norm() const {return std::sqrt(norm2());}
-};
-
-template<int n> int64_t operator*(const Veci<n>& lhs, const Veci<n>& rhs)
-{
-    int64_t ret = 0;
-    for (int i=n; i--; ret+=lhs[i]*rhs[i]);
-    return ret;
-}
 template<int n, typename T> T operator*(const vec<n, T>& lhs, const vec<n, T>& rhs) {
     T ret = 0;
     for (int i=n; i--; ret+=lhs[i]*rhs[i]);
     return ret;
 }
 
-template<int n> Veci<n> operator+(const Veci<n>& lhs, const Veci<n>& rhs)
-{
-    Veci<n> ret;
-    for(int i = n; i--; ret[i] = lhs[i] + rhs[i]);
-    return ret;
-}
 template<int n, typename T> vec<n, T> operator+(const vec<n, T>& lhs, const vec<n, T>& rhs) {
     vec<n, T> ret = lhs;
     for (int i=n; i--; ret[i]+=rhs[i]);
     return ret;
 }
 
-template<int n> Veci<n> operator-(const Veci<n>& lhs, const Veci<n>& rhs) {
-    Veci<n> ret = lhs;
-    for (int i=n; i--; ret[i]-=rhs[i]);
-    return ret;
-}
 
 template<int n, typename T> vec<n, T> operator-(const vec<n, T>& lhs, const vec<n, T>& rhs) {
     vec<n, T> ret = lhs;
@@ -68,27 +43,8 @@ template<int n, typename T> vec<n, T> operator*(const vec<n, T>& lhs, const T& r
     return ret;
 }
 
-template<int n> Veci<n> operator*(const float& rhs, const Veci<n> &lhs) {
-    Veci<n> ret = lhs;
-    for (int i=n; i--; ret[i]*=rhs);
-    return ret;
-}
-
-template<int n> Veci<n> operator*(const Veci<n>& lhs, const float& rhs) {
-    Veci<n> ret = lhs;
-    for (int i=n; i--; ret[i]*=rhs);
-    return ret;
-}
-
-
 template<int n, typename T> vec<n, T> operator/(const vec<n, T>& lhs, const double& rhs) {
     vec<n, T> ret = lhs;
-    for (int i=n; i--; ret[i]/=rhs);
-    return ret;
-}
-
-template<int n> Veci<n> operator/(const Veci<n>& lhs, const int& rhs) {
-    Veci<n> ret = lhs;
     for (int i=n; i--; ret[i]/=rhs);
     return ret;
 }
@@ -107,12 +63,6 @@ template<int n1,int n2, typename T> vec<n1, T> proj(const vec<n2, T> &v) {
 
 template<int n, typename T> std::ostream& operator<<(std::ostream& out, const vec<n, T>& v) {
     for (int i=0; i<n; i++) out << v[i] << " ";
-    return out;
-}
-
-template<int n> std::ostream& operator<<(std::ostream& out, const Veci<n>& v)
-{
-    for(int i = 0;i < n ;i++) out << v[i] << " ";
     return out;
 }
 
@@ -138,24 +88,16 @@ template<typename T> struct vec<3, T> {
                z * other.x - other.z * x,
                x * other.y - y * other.x};
     }
-};
-
-template<> struct Veci<2>
-{
-    int x = 0, y = 0;
-    int& operator[](const int i) {assert(i >= 0 && i < 2); return (i ? y : x);}
-    int  operator[](const int i) const {assert(i >=0 && i < 2); return (i ? y : x);} 
-    int64_t norm2() const {return *this * *this;}
-    double norm() const {return std::sqrt(norm2());}
-};
-
-template<> struct Veci<3>
-{
-    int x = 0, y = 0, z = 0;
-    int& operator[](const int i) {assert(i >= 0 && i < 3); return (i ? (i == 1 ? y : z) : x);}
-    int  operator[](const int i) const {assert(i >=0 && i < 3); return (i ? (i == 1 ? y : z) : x);} 
-    int64_t norm2() const {return *this * *this;}
-    double norm() const {return std::sqrt(norm2());}
+    template<typename TT> vec<3, T>(const vec<3, TT>& other)
+    {
+        x = static_cast<T>(other.x);
+        y = static_cast<T>(other.y);
+        z = static_cast<T>(other.z);
+    }
+    vec<3, T> (T _x, T _y, T _z)
+        :x(_x), y(_y), z(_z){ }
+    vec<3, T>() = default;
+    
 };
 
 
@@ -163,8 +105,8 @@ typedef vec<2, float> vec2f;
 typedef vec<3, float> vec3f;
 typedef vec<4, float> vec4f;
 
-typedef Veci<2> Veci2;
-typedef Veci<3> Veci3;
+typedef vec<2, int> veci2;
+typedef vec<3, int> veci3;
 vec3f cross(const vec3f &v1, const vec3f &v2);
 
 template<int n, typename T> struct dt;
