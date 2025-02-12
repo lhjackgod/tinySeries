@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClInclude Include="src\geometry.h" />
     <ClInclude Include="src\model.h" />
+    <ClInclude Include="src\out_gl.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\tgaimage.h" />
   </ItemGroup>
@@ -134,6 +135,7 @@
     <ClCompile Include="src\geometry.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\model.cpp" />
+    <ClCompile Include="src\out_gl.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
     <ClCompile Include="src\tgaimage.cpp" />
   </ItemGroup>
