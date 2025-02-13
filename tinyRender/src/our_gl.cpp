@@ -110,5 +110,11 @@ namespace OURGL
             }
         }
     }
+    TGAColor getTextureColor(const vec2f& uv, const TGAImage& image)
+    {
+        int u_coord = std::clamp(uv.x, 0.0f, 1.0f) * (image.width() - 1);
+        int v_coord = std::clamp(uv.y, 0.0f, 1.0f) * (image.height() - 1);
+        return image.get(u_coord, v_coord);
+    }
 }
 

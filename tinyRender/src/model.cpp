@@ -43,9 +43,45 @@ Model::Model(const std::string filename) {
         }
     }
     std::cerr << "# v# " << nverts() << " f# "  << nfaces() << " vt# " << tex_coord.size() << " vn# " << norms.size() << std::endl;
+    tangentSpaceTangent = new vec3f[nfaces()];
+    load_tbn();
     load_texture(filename, "_diffuse.tga",    diffusemap );
     load_texture(filename, "_nm_tangent.tga", normalmap  );
     load_texture(filename, "_spec.tga",       specularmap);
+}
+
+void Model::load_tbn()
+{
+    for(int face = 0; face < nfaces(); face++)
+    {
+        vec3f v0 = vert(face, 0);
+        vec3f v1 = vert(face, 1);
+        vec3f v2 = vert(face, 2);
+
+        vec2f uv0 = uv(face, 0);
+        vec2f uv1 = uv(face, 1);
+        vec2f uv2 = uv(face, 2);
+
+        vec3f deltaPos1 = v1 - v0;
+        vec3f deltaPos2 = v2 - v0;
+
+        vec2f deltauv1 = uv1 - uv0;
+        vec2f deltauv2 = uv2 - uv0;
+
+        mat<2, 2, float> delta_uv_matrix = 
+        {
+            vec2f{deltauv1.x, deltauv1.y},
+            vec2f{deltauv2.x, deltauv2.y}
+        } ;
+        mat<2, 3, float> delta_pos_matrix = {
+            vec3f(deltaPos1.x, deltaPos1.y, deltaPos1.z),
+            vec3f(deltaPos2.x, deltaPos2.y, deltaPos2.z)
+        };
+        mat<2, 3, float> TB = delta_uv_matrix.invert() * delta_pos_matrix;
+        vec3f tangent = TB[0].normalized();
+        vec3f bitangent = TB[1].normalized();
+        tangentSpaceTangent[face] = tangent;
+    }
 }
 
 int Model::nverts() const {
@@ -75,6 +111,8 @@ vec3f Model::normal(const vec2f &uvf) const {
     TGAColor c = normalmap.get(uvf[0]*normalmap.width(), uvf[1]*normalmap.height());
     return vec3f{(float)c[2],(float)c[1],(float)c[0]}*2.f/255.f - vec3f{1,1,1};
 }
+
+
 
 vec2f Model::uv(const int iface, const int nthvert) const {
     return tex_coord[facet_tex[iface*3+nthvert]];

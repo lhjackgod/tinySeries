@@ -20,4 +20,5 @@ namespace OURGL
     vec3f barycentric(veci3* pts, veci3 p);
     void drawTriangle(vec4f* vertex_output, IShader& shader, TGAImage& image,
     float* zBuffer);
+    TGAColor getTextureColor(const vec2f& uv, const TGAImage& image);
 }

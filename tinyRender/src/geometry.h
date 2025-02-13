@@ -94,10 +94,11 @@ template<typename T> struct vec<3, T> {
         y = static_cast<T>(other.y);
         z = static_cast<T>(other.z);
     }
-    vec<3, T> (T _x, T _y, T _z)
-        :x(_x), y(_y), z(_z){ }
+    vec<3, T>(T _x, T _y, T _z)
+        :x(_x), y(_y), z(_z) {
+    }
     vec<3, T>() = default;
-    
+
 };
 
 
@@ -107,32 +108,32 @@ typedef vec<4, float> vec4f;
 
 typedef vec<2, int> veci2;
 typedef vec<3, int> veci3;
-vec3f cross(const vec3f &v1, const vec3f &v2);
+vec3f cross(const vec3f& v1, const vec3f& v2);
 
 template<int n, typename T> struct dt;
 
-template<int nrows,int ncols, typename T> struct mat {
-    vec<ncols, T> rows[nrows] = {{}};
+template<int nrows, int ncols, typename T> struct mat {
+    vec<ncols, T> rows[nrows] = { {} };
 
-          vec<ncols, T>& operator[] (const int idx)       { assert(idx>=0 && idx<nrows); return rows[idx]; }
-    const vec<ncols, T>& operator[] (const int idx) const { assert(idx>=0 && idx<nrows); return rows[idx]; }
+    vec<ncols, T>& operator[] (const int idx) { assert(idx >= 0 && idx < nrows); return rows[idx]; }
+    const vec<ncols, T>& operator[] (const int idx) const { assert(idx >= 0 && idx < nrows); return rows[idx]; }
 
     vec<nrows, T> col(const int idx) const {
-        assert(idx>=0 && idx<ncols);
-        vec<nrows,T> ret;
-        for (int i=nrows; i--; ret[i]=rows[i][idx]);
+        assert(idx >= 0 && idx < ncols);
+        vec<nrows, T> ret;
+        for (int i = nrows; i--; ret[i] = rows[i][idx]);
         return ret;
     }
 
-    void set_col(const int idx, const vec<nrows, T> &v) {
-        assert(idx>=0 && idx<ncols);
-        for (int i=nrows; i--; rows[i][idx]=v[i]);
+    void set_col(const int idx, const vec<nrows, T>& v) {
+        assert(idx >= 0 && idx < ncols);
+        for (int i = nrows; i--; rows[i][idx] = v[i]);
     }
 
-    static mat<nrows,ncols, T> identity() {
-        mat<nrows,ncols, T> ret;
-        for (int i=nrows; i--; )
-            for (int j=ncols;j--; ret[i][j]=(i==j));
+    static mat<nrows, ncols, T> identity() {
+        mat<nrows, ncols, T> ret;
+        for (int i = nrows; i--; )
+            for (int j = ncols; j--; ret[i][j] = (i == j));
         return ret;
     }
 
@@ -140,50 +141,50 @@ template<int nrows,int ncols, typename T> struct mat {
         return dt<ncols, T>::det(*this);
     }
 
-    mat<nrows-1,ncols-1, T> get_minor(const int row, const int col) const {
-        mat<nrows-1,ncols-1, T> ret;
-        for (int i=nrows-1; i--; )
-            for (int j=ncols-1;j--; ret[i][j]=rows[i<row?i:i+1][j<col?j:j+1]);
+    mat<nrows - 1, ncols - 1, T> get_minor(const int row, const int col) const {
+        mat<nrows - 1, ncols - 1, T> ret;
+        for (int i = nrows - 1; i--; )
+            for (int j = ncols - 1; j--; ret[i][j] = rows[i < row ? i : i + 1][j < col ? j : j + 1]);
         return ret;
     }
 
     double cofactor(const int row, const int col) const {
-        return get_minor(row,col).det()*((row+col)%2 ? -1 : 1);
+        return get_minor(row, col).det() * ((row + col) % 2 ? -1 : 1);
     }
 
-    mat<nrows,ncols, T> adjugate() const {
-        mat<nrows,ncols, T> ret;
-        for (int i=nrows; i--; )
-            for (int j=ncols; j--; ret[i][j]=cofactor(i,j));
+    mat<nrows, ncols, T> adjugate() const {
+        mat<nrows, ncols, T> ret;
+        for (int i = nrows; i--; )
+            for (int j = ncols; j--; ret[i][j] = cofactor(i, j));
         return ret;
     }
 
-    mat<nrows,ncols, T> invert_transpose() const {
-        mat<nrows,ncols, T> ret = adjugate();
-        return ret/(ret[0]*rows[0]);
+    mat<nrows, ncols, T> invert_transpose() const {
+        mat<nrows, ncols, T> ret = adjugate();
+        return ret / (ret[0] * rows[0]);
     }
 
-    mat<nrows,ncols, T> invert() const {
+    mat<nrows, ncols, T> invert() const {
         return invert_transpose().transpose();
     }
 
-    mat<ncols,nrows, T> transpose() const {
-        mat<ncols,nrows, T> ret;
-        for (int i=ncols; i--; ret[i]=this->col(i));
+    mat<ncols, nrows, T> transpose() const {
+        mat<ncols, nrows, T> ret;
+        for (int i = ncols; i--; ret[i] = this->col(i));
         return ret;
     }
 };
 
-template<int nrows,int ncols, typename T> vec<nrows, T> operator*(const mat<nrows,ncols, T>& lhs, const vec<ncols, T>& rhs) {
+template<int nrows, int ncols, typename T> vec<nrows, T> operator*(const mat<nrows, ncols, T>& lhs, const vec<ncols, T>& rhs) {
     vec<nrows, T> ret;
-    for (int i=nrows; i--; ret[i]=lhs[i]*rhs);
+    for (int i = nrows; i--; ret[i] = lhs[i] * rhs);
     return ret;
 }
 
-template<int R1,int C1,int C2, typename T>mat<R1,C2, T> operator*(const mat<R1,C1, T>& lhs, const mat<C1,C2, T>& rhs) {
-    mat<R1,C2, T> result;
-    for (int i=R1; i--; )
-        for (int j=C2; j--; result[i][j]=lhs[i]*rhs.col(j));
+template<int R1, int C1, int C2, typename T>mat<R1, C2, T> operator*(const mat<R1, C1, T>& lhs, const mat<C1, C2, T>& rhs) {
+    mat<R1, C2, T> result;
+    for (int i = R1; i--; )
+        for (int j = C2; j--; result[i][j] = lhs[i] * rhs.col(j));
     return result;
 }
 
