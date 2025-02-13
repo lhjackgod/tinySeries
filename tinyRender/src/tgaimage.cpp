@@ -3,7 +3,10 @@
 #include "tgaimage.h"
 
 TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {}
-
+TGAImage::TGAImage(const std::string filename)
+{
+    read_tga_file(filename);
+}
 bool TGAImage::read_tga_file(const std::string filename) {
     std::cout << "jack" << " " << filename << std::endl;
     std::ifstream in;

@@ -3,19 +3,21 @@
 #include "geometry.h"
 namespace OURGL
 {   
+    struct IShader
+    {
+        float f_Depth;
+        virtual ~IShader() {}
+        virtual vec4f vertex(int iface, int nthvert) = 0;
+        virtual bool fragment(vec3f bar, TGAColor& color) = 0; 
+    };
+
     const static TGAColor white(255, 255, 255, 255);
     const static TGAColor red(255, 0, 0, 255);
     const static float Ro2Ra = 3.1415926f / 180.0f;
-
-    void drawLine(veci2 p0, veci2 p1, TGAImage &image, const TGAColor& color);
-    mat<4, 4, float> getViewMatrix(const vec3f& camera_pos, const vec3f& toward_pos);
-    mat<4, 4, float> getPerspective(float fov, float aspect, float zNear, float zFar);
-    mat<4, 4, float> getViewPortMatrix(int width, int height);
+    mat<4, 4, float> setViewMatrix(const vec3f& camera_pos, const vec3f& toward_pos);
+    mat<4, 4, float> setPerspectiveMatrix(float fov, float aspect, float zNear, float zFar);
+    mat<4, 4, float> setViewPortMatrix(int width, int height);
     vec3f barycentric(veci3* pts, veci3 p);
-    void drawTriangle(veci3* pts, TGAImage& image,
-        TGAImage& material, vec2f* uv_coords,
-        float* light_intensity, float* depth,
+    void drawTriangle(vec4f* vertex_output, IShader& shader, TGAImage& image,
     float* zBuffer);
-    void drawObj(const char* fileName, const char* materialPath, TGAImage& image,
-        float* zBuffer);
 }

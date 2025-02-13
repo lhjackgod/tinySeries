@@ -40,16 +40,6 @@ struct TGAColor {
         bytespp = bpp;
      }
     TGAColor() = default;
-    void gama()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            float p_bgra = bgra[i];
-            p_bgra /= 255.0f;
-            p_bgra = std::pow(p_bgra, 1.0f / 2.2f);
-            bgra[i] = static_cast<uint8_t>(p_bgra * 255.0f);
-        }
-    }
 };
 
 TGAColor operator*(const TGAColor& color, float f);
@@ -61,6 +51,7 @@ struct TGAImage {
 
     TGAImage() = default;
     TGAImage(const int w, const int h, const int bpp);
+    TGAImage(const std::string filename);
     bool  read_tga_file(const std::string filename);
     bool write_tga_file(const std::string filename, const bool vflip=true, const bool rle=true) const;
     void flip_horizontally();
