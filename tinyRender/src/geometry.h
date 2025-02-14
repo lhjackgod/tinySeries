@@ -101,7 +101,6 @@ template<typename T> struct vec<3, T> {
 
 };
 
-
 typedef vec<2, float> vec2f;
 typedef vec<3, float> vec3f;
 typedef vec<4, float> vec4f;

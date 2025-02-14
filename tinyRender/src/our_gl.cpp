@@ -95,6 +95,11 @@ namespace OURGL
                 {
                     continue;
                 }
+                float w = 1.0f / (bc_screen.x / vertex_output[0][3] + bc_screen.y / vertex_output[1][3] + bc_screen.z / vertex_output[2][3]);
+                bc_screen.x = w * (bc_screen.x / vertex_output[0][3]);
+                bc_screen.y = w * (bc_screen.y / vertex_output[1][3]);
+                bc_screen.z = w * (bc_screen.z / vertex_output[2][3]);
+
                 TGAColor color;
                 if(!shader.fragment(bc_screen, color))
                 {
@@ -112,6 +117,7 @@ namespace OURGL
     }
     TGAColor getTextureColor(const vec2f& uv, const TGAImage& image)
     {
+
         int u_coord = std::clamp(uv.x, 0.0f, 1.0f) * (image.width() - 1);
         int v_coord = std::clamp(uv.y, 0.0f, 1.0f) * (image.height() - 1);
         return image.get(u_coord, v_coord);

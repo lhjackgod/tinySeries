@@ -1,15 +1,35 @@
 ﻿  main.cpp
-D:\tinySeries\tinyRender\src\main.cpp(59,21): warning C4244: “初始化”: 从“_Ty”转换到“int”，可能丢失数据
+D:\tinySeries\tinyRender\src\main.cpp(37,1): warning C4305: “=”: 从“double”到“T”截断
+          with
+          [
+              T=float
+          ]
+D:\tinySeries\tinyRender\src\main.cpp(73,76): warning C4244: “参数”: 从“T”转换到“const int”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+D:\tinySeries\tinyRender\src\main.cpp(73,60): warning C4244: “参数”: 从“T”转换到“const int”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+D:\tinySeries\tinyRender\src\main.cpp(78,21): warning C4244: “初始化”: 从“_Ty”转换到“int”，可能丢失数据
           with
           [
               _Ty=float
           ]
-D:\tinySeries\tinyRender\src\main.cpp(60,21): warning C4244: “初始化”: 从“_Ty”转换到“int”，可能丢失数据
+D:\tinySeries\tinyRender\src\main.cpp(79,21): warning C4244: “初始化”: 从“_Ty”转换到“int”，可能丢失数据
           with
           [
               _Ty=float
           ]
-D:\tinySeries\tinyRender\src\main.cpp(75,34): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+D:\tinySeries\tinyRender\src\main.cpp(94,34): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+D:\tinySeries\tinyRender\src\main.cpp(122,1): warning C4305: “=”: 从“double”到“T”截断
+          with
+          [
+              T=float
+          ]
 D:\tinySeries\tinyRender\src\geometry.h(54,34): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
           with
           [
@@ -21,5 +41,5 @@ D:\tinySeries\tinyRender\src\geometry.h(48,1): warning C4244: “/=”: 从“co
           [
               T=float
           ]
-D:\tinySeries\tinyRender\src\main.cpp(25): message : 查看对正在编译的函数 模板 实例化“vec<4,float> operator /<4,float>(const vec<4,float> &,const double &)”的引用
+D:\tinySeries\tinyRender\src\main.cpp(26): message : 查看对正在编译的函数 模板 实例化“vec<4,float> operator /<4,float>(const vec<4,float> &,const double &)”的引用
   MyTinyRender.vcxproj -> D:\tinySeries\tinyRender\bin\Debug-windows-x86_64\MyTinyRender\MyTinyRender.exe

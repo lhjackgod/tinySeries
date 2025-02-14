@@ -5,9 +5,7 @@
 #include <algorithm>
 
 Model model("asserts/african_head.obj");
-vec3f lightPos {0.0f, 0.0f, 2.0f};
-TGAImage diffuseImage("asserts/african_head_diffuse.tga");
-
+vec3f lightPos { 1.f, 1.f, .8f};
 struct GouraudShader : public OURGL::IShader
 {
     mat<4, 4, float> viewMatrix;
@@ -15,15 +13,30 @@ struct GouraudShader : public OURGL::IShader
     mat<4, 4, float> viewPortMatrix;
     mat<4, 4, float> modelMatrix;
     vec3f eyePos;
+    mat<4, 4, float> lightMVP;
     virtual vec4f vertex(int iface, int nthvert)
     {
+        vec3f vert = model.vert(iface, nthvert);
         vec3f normal = model.normal(iface, nthvert).normalized();
         vec4f gl_Vertex = viewPortMatrix * perspectiveMatrix *  
-        viewMatrix * embed<4>(model.vert(iface, nthvert));
+        viewMatrix * embed<4>(vert);
+        vec4f lightMVPHom = lightMVP * embed<4>(vert);
+        if(std::abs(lightMVPHom[3]) > 1e-3)
+        {
+            lightMVPHom = lightMVPHom / lightMVPHom[3];
+        }
+        lightMVPCoords[nthvert] = vec3f{lightMVPHom[0], lightMVPHom[1], lightMVPHom[2]};
+
         if(std::abs(gl_Vertex[3]) > 1e-3)
         {
-            gl_Vertex = gl_Vertex / gl_Vertex[3];
+            gl_Vertex[0] = gl_Vertex[0] / gl_Vertex[3];
+            gl_Vertex[1] = gl_Vertex[1] / gl_Vertex[3];
+            gl_Vertex[2] = gl_Vertex[2] / gl_Vertex[3];
         }
+        else{
+            gl_Vertex[3] = 1e-3;
+        }
+
         v_Depth[nthvert] = gl_Vertex[2];
         vPos[nthvert] = model.vert(iface, nthvert);
         uv[nthvert] = model.uv(iface, nthvert);
@@ -41,13 +54,14 @@ struct GouraudShader : public OURGL::IShader
         return gl_Vertex;
     }
     //vert output
-
+    vec3f lightMVPCoords[3];
     vec3f vNormal[3];
     vec3f vTangent;
     vec3f vBitangent;
     vec3f vPos[3];
     vec2f uv[3];
     float v_Depth[3];
+    TGAImage depthMap;
     virtual bool fragment(vec3f bar, TGAColor& color)
     {
         vec3f f_Pos = vPos[0] * bar.x + vPos[1] * bar.y + vPos[2] * bar.z;
@@ -55,6 +69,11 @@ struct GouraudShader : public OURGL::IShader
         f_Depth = v_Depth[0] * bar.x + v_Depth[1] * bar.y + v_Depth[2] * bar.z;
         vec3f f_lightDir = (lightPos - f_Pos).normalized();
         vec3f f_eyeDir = (eyePos - f_Pos).normalized();
+        vec3f f_lightCoord = lightMVPCoords[0] * bar.x + lightMVPCoords[1] * bar.y + lightMVPCoords[2] * bar.z;
+        uint8_t light_depth_map = depthMap.get(f_lightCoord.x, f_lightCoord.y).bgra[0];
+        uint8_t light_depth = static_cast<uint8_t>((std::clamp(f_lightCoord.z, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+       
+        float shadow = 0.3f + 0.7f * (light_depth <= (light_depth_map + 1));
         
         int u_coord = std::clamp(f_Uv.x, 0.0f, 1.0f) * (model.diffuse().width() - 1);
         int v_coord = std::clamp(f_Uv.y, 0.0f, 1.0f) * (model.diffuse().height() - 1);
@@ -75,27 +94,68 @@ struct GouraudShader : public OURGL::IShader
         float specular_intensity = std::pow(std::max(0.0f, f_Normal * h), model.specular().get(u_coord, v_coord).bgra[0]);
         TGAColor ambientColor(5, 5, 5);
         TGAColor specularColor = model.diffuse().get(u_coord, v_coord) * specular_intensity;
-        
-        color = specularColor + diffuseColor + ambientColor;
+        color = (ambientColor + diffuseColor + specularColor) * shadow;
         return true;
     }
 };
+
+struct DepthShader : public OURGL::IShader
+{
+    mat<4, 4, float> viewMatrix;
+    mat<4, 4, float> perspectiveMatrix;
+    mat<4, 4, float> viewPortMatrix;
+    mat<4, 4, float> modelMatrix;
+    vec3f lightPos;
+    virtual vec4f vertex(int iface, int nthvert)
+    {
+        vec3f vert = model.vert(iface, nthvert);
+        vec4f gl_Vertex = embed<4>(vert);
+
+        gl_Vertex = viewPortMatrix * perspectiveMatrix * viewMatrix * modelMatrix * gl_Vertex;
+        if (std::abs(gl_Vertex[3]) > 1e-3)
+        {
+            gl_Vertex[0] = gl_Vertex[0] / gl_Vertex[3];
+            gl_Vertex[1] = gl_Vertex[1] / gl_Vertex[3];
+            gl_Vertex[2] = gl_Vertex[2] / gl_Vertex[3];
+        }
+        else {
+            gl_Vertex[3] = 1e-3;
+        }
+        depth[nthvert] = gl_Vertex[2];
+        
+        return gl_Vertex;
+    }
+
+    float depth[3];
+    virtual bool fragment(vec3f bar, TGAColor& color)
+    {
+        f_Depth = depth[0] * bar.x +
+            depth[1] * bar.y + depth[2] * bar.z;
+        float d = std::clamp(f_Depth, -1.0f, 1.0f);
+        color = OURGL::white * (d * 0.5f + 0.5f);
+        return true;
+    }
+};
+
 
 int main(int argc, char* argv[])
 {
     const int width = 1000;
     const int height = 1000;
     TGAImage image(width, height, TGAImage::RGB);
+    TGAImage depthMap(width, height, TGAImage::GRAYSCALE);
     float* zBuffer = new float[width * height];
+    float* DepthBuffer = new float[width * height];
     for(int i = 0; i < width * height; i++)
     {
         zBuffer[i] = 1.0f;
+        DepthBuffer[i] = 1.0f;
     }
     
     float fov = 90.0f;
     float zNear = 0.1f;
     float zFar = 100.0f;
-    vec3f camera_pos = {0.5f, 0.3f, 1.5f};
+    vec3f camera_pos = { 0.5f, 0.3f, 2.0f };
     vec3f toward_pos = {0.0f, 0.0f, 0.0f};
 
     GouraudShader shader;
@@ -104,6 +164,25 @@ int main(int argc, char* argv[])
     shader.viewPortMatrix = OURGL::setViewPortMatrix(width, height);
     shader.modelMatrix = mat<4,4,float>::identity();
     shader.eyePos = camera_pos;
+
+    DepthShader depthShader;
+    depthShader.viewMatrix = OURGL::setViewMatrix(lightPos, toward_pos);
+    depthShader.perspectiveMatrix = OURGL::setPerspectiveMatrix(fov, static_cast<float>(width) / static_cast<float>(height), zNear, zFar);
+    depthShader.viewPortMatrix = OURGL::setViewPortMatrix(width, height);
+    depthShader.modelMatrix = mat<4,4,float>::identity();
+
+    for(int face = 0; face < model.nfaces(); face++)
+    {
+        vec4f screenPos[3];
+        for(int nthvert = 0; nthvert < 3; nthvert++)
+        {
+            screenPos[nthvert] = depthShader.vertex(face, nthvert);
+        }
+        OURGL::drawTriangle(screenPos, depthShader, depthMap, DepthBuffer);
+    }
+
+    shader.lightMVP =depthShader.viewPortMatrix * depthShader.perspectiveMatrix * depthShader.viewMatrix * depthShader.modelMatrix;
+    shader.depthMap = depthMap;
     for(int face = 0; face < model.nfaces(); face++)
     {
         vec4f screenPos[3];
@@ -116,5 +195,7 @@ int main(int argc, char* argv[])
 
     image.flip_vertically();
     image.write_tga_file("output.tga");
+    depthMap.flip_vertically();
+    depthMap.write_tga_file("depthMap.tga");
     return 0;
 }
