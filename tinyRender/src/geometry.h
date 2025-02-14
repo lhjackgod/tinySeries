@@ -73,6 +73,11 @@ template<typename T> struct vec<2, T> {
     T norm2() const { return *this * *this; }
     T norm()  const { return std::sqrt(norm2()); }
     vec<2, T>normalized() { return (*this)/norm(); }
+    vec<2, T>(T _x, T _y)
+        :x(_x), y(_y) {
+            
+        }
+    vec<2, T>() = default;
 };
 
 template<typename T> struct vec<3, T> {

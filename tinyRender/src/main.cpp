@@ -6,6 +6,9 @@
 
 Model model("asserts/african_head.obj");
 vec3f lightPos { 1.f, 1.f, .8f};
+const float MY_PI = 3.1415926f;
+const int width = 800;
+const int height = 800;
 struct GouraudShader : public OURGL::IShader
 {
     mat<4, 4, float> viewMatrix;
@@ -138,10 +141,63 @@ struct DepthShader : public OURGL::IShader
 };
 
 
+struct AOShader : public OURGL::IShader
+{
+    mat<4, 4, float> viewMatrix;
+    mat<4 ,4 ,float> perspectiveMatrix;
+    mat<4, 4, float> viewPortMatrix;
+    mat<4 ,4, float> modelMatrix;
+    
+    virtual vec4f vertex(int iface, int nthvert)
+    {
+        vec3f vert = model.vert(iface, nthvert);
+        vec4f gl_Vertex = embed<4>(vert);
+
+        gl_Vertex = viewPortMatrix * perspectiveMatrix * viewMatrix * modelMatrix * gl_Vertex;
+        
+        if(std::abs(gl_Vertex[3]) > 1e-3)
+        {
+            gl_Vertex[0] = gl_Vertex[0] / gl_Vertex[3];
+            gl_Vertex[1] = gl_Vertex[1] / gl_Vertex[3];
+            gl_Vertex[2] = gl_Vertex[2] / gl_Vertex[3];
+        }
+        else
+        {
+            gl_Vertex[3] = 1e-3;
+        }
+        vDepth[nthvert] = gl_Vertex[2];
+        return gl_Vertex;
+    }
+    float vDepth[3];
+    virtual bool fragment(vec3f bar, TGAColor& color)
+    {
+        f_Depth = vDepth[0] * bar.x + vDepth[1] * bar.y + vDepth[2] * bar.z;
+        color = TGAColor(0, 0, 0);
+        return true;
+    }
+};
+
+float calculateAO(float* depthBuffer, vec2f p, vec2f dir)
+{
+    float max_angle = 0.0f;
+    for(float t = 0.0f; t <= 1000.f; t+=1.)
+    {
+        vec2f p2 = p + dir * t;
+        if(p2.x < 0.f || p2.x >= width || p2.y < 0.f || p2.y >= height) return max_angle;
+
+        int p2Idx = static_cast<int>(p2.x + p2.y * width);
+        int pIdx = static_cast<int>(p.x + p.y * width);
+        float deltaDepth = depthBuffer[p2Idx] - depthBuffer[pIdx];
+        float deltaDistance = t;
+        float angle = std::atanf(deltaDepth / deltaDistance);
+        max_angle = std::max(max_angle, angle);
+    }
+    return max_angle;
+}
+
 int main(int argc, char* argv[])
 {
-    const int width = 1000;
-    const int height = 1000;
+
     TGAImage image(width, height, TGAImage::RGB);
     TGAImage depthMap(width, height, TGAImage::GRAYSCALE);
     float* zBuffer = new float[width * height];
@@ -155,10 +211,10 @@ int main(int argc, char* argv[])
     float fov = 90.0f;
     float zNear = 0.1f;
     float zFar = 100.0f;
-    vec3f camera_pos = { 0.5f, 0.3f, 2.0f };
+    vec3f camera_pos = { 0.7,-.4,2 };
     vec3f toward_pos = {0.0f, 0.0f, 0.0f};
 
-    GouraudShader shader;
+    /*GouraudShader shader;
     shader.viewMatrix = OURGL::setViewMatrix(camera_pos, toward_pos);
     shader.perspectiveMatrix = OURGL::setPerspectiveMatrix(fov, static_cast<float>(width) / static_cast<float>(height), zNear, zFar);
     shader.viewPortMatrix = OURGL::setViewPortMatrix(width, height);
@@ -196,6 +252,51 @@ int main(int argc, char* argv[])
     image.flip_vertically();
     image.write_tga_file("output.tga");
     depthMap.flip_vertically();
-    depthMap.write_tga_file("depthMap.tga");
+    depthMap.write_tga_file("depthMap.tga");*/
+
+    float* aoDepthBuffer = new float[width * height];
+    for(int i = 0; i < width * height; i++) aoDepthBuffer[i] = 1.0f;
+    AOShader aoShader;
+    aoShader.viewMatrix = OURGL::setViewMatrix(camera_pos, toward_pos);
+    aoShader.perspectiveMatrix = OURGL::setPerspectiveMatrix(fov, static_cast<float>(width) / static_cast<float>(height), zNear, zFar);
+    aoShader.viewPortMatrix = OURGL::setViewPortMatrix(width, height);
+    aoShader.modelMatrix = mat<4,4,float>::identity();
+    TGAImage aoImage(width, height ,TGAImage::RGB);
+
+    for(int face = 0; face < model.nfaces(); face++)
+    {
+        vec4f screenPos[3];
+        for(int nthvert = 0; nthvert < 3; nthvert++)
+        {
+            screenPos[nthvert] = aoShader.vertex(face, nthvert);
+        }
+        OURGL::drawTriangle(screenPos, aoShader, aoImage, aoDepthBuffer);
+    }
+    for(int i = 0; i < width; i++)
+    {
+        for(int j = 0; j < height; j++)
+        {
+            if(aoDepthBuffer[i + j * width] == 1.0f) continue;
+            float total = 0.0f;
+            int count = 0;
+            for(float angle = 0.0f; angle < MY_PI * 2.0f - 1e-4; angle += MY_PI / 4.0f, count ++)
+            {
+                float maxAngle = (MY_PI / 2.0f - calculateAO(aoDepthBuffer, vec2f(i, j), vec2f(std::cos(angle), std::sin(angle))));
+                total += maxAngle;
+            }
+            
+            total /= (MY_PI / 2.0f * 8.0f);
+            
+            total = std::pow(total, 10.0f);
+            
+            aoImage.set(i, j, OURGL::white * total);
+        }
+    }
+    aoImage.flip_vertically();
+    aoImage.write_tga_file("aoImage.tga");
+    delete[] zBuffer;
+    delete[] DepthBuffer;
+    delete[] aoDepthBuffer;
+    
     return 0;
 }

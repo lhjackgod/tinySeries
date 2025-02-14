@@ -6,6 +6,7 @@ namespace OURGL
     struct IShader
     {
         float f_Depth;
+        IShader() = default;
         virtual ~IShader() {}
         virtual vec4f vertex(int iface, int nthvert) = 0;
         virtual bool fragment(vec3f bar, TGAColor& color) = 0; 
